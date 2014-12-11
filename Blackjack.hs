@@ -1,4 +1,5 @@
 import System.Random.Shuffle
+import Control.Monad.State
 
 data Card = Numeric Int | Jack | Queen | King | Ace
   deriving (Show)
@@ -13,6 +14,10 @@ type Dealer = Player
 type Deck = [Card]
 type Hand = [Card]
 type Game = (Deck, Player, Dealer)
+type DeckState = State Deck
+
+runDeck :: Deck -> DeckState a -> a
+runDeck deck f = evalState f deck
 
 main :: IO ()
 main = do
@@ -79,13 +84,19 @@ makeAction "stay" = Stay
 
 setup :: Deck -> Game
 setup deck =
-  (deck'', player, dealer)
-  where (player, deck') = dealHand deck
-        (dealer, deck'') = dealHand deck'
+  runDeck deck $ do
+    player <- dealHand
+    dealer <- dealHand
+    deck' <- get
+    return (deck', player, dealer)
 
-dealHand :: Deck -> (Player, Deck)
-dealHand deck =
-  (Player $ take 2 deck, drop 2 deck)
+dealHand :: DeckState Player
+-- dealHand :: State Deck Player
+-- dealHand :: Player -> (Deck, Player)
+dealHand = do
+  deck <- get
+  put $ drop 2 deck
+  return $ Player $ take 2 deck
 
 playerVictory :: Game -> Bool
 playerVictory (_, player, dealer)
