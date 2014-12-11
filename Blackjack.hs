@@ -12,6 +12,7 @@ data Player = Player Hand
 type Dealer = Player
 
 data Action = Hit | Stay
+  deriving (Eq)
 
 type Game = (Deck, Player, Dealer)
 
@@ -29,8 +30,9 @@ playHand (deck, player, dealer) = do
   action <- getLine
   let playerAction = makeAction action
   let (player', deck') = doPlayerTurn player deck playerAction
-  putStrLn $ "Your hand: " ++ (show $ handValue player')
-  return (deck', player', dealer)
+  if playerAction == Hit
+      then playHand (deck', player', dealer)
+      else return (deck', player', dealer)
 
 makeAction:: [Char] -> Action
 makeAction "hit" = Hit
