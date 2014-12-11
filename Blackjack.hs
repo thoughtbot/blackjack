@@ -21,17 +21,24 @@ type Game = (Deck, Player, Dealer)
 
 main :: IO ()
 main = do
-  let game = setup
-  let victory = checkVictory game
-  -- deck <- shuffleM newDeck
+  deck <- shuffleM newDeck
+  let game = setup deck
+  let victory = playerVictory game
+  print game
   print victory
 
-setup :: Game
-setup =
-  (shuffledDeck, Player [], Player [])
+setup :: Deck -> Game
+setup deck =
+  (deck'', player, dealer)
+  where (player, deck') = dealHand deck
+        (dealer, deck'') = dealHand deck'
 
-checkVictory :: Game -> Bool
-checkVictory (_, player, dealer)
+dealHand :: Deck -> (Player, Deck)
+dealHand deck =
+  (Player $ take 2 deck, drop 2 deck)
+
+playerVictory :: Game -> Bool
+playerVictory (_, player, dealer)
   | playerValue > 21 = False
   | dealerValue > 21 = True
   | playerValue > dealerValue = True
@@ -40,10 +47,13 @@ checkVictory (_, player, dealer)
         dealerValue = handValue dealer
 
 newDeck :: Deck
-newDeck = undefined
+newDeck =
+  concat $ replicate 4 [Numeric 1, Numeric 2, Numeric 3, Numeric 4, Numeric 5,
+                        Numeric 6, Numeric 7, Numeric 8, Numeric 9, Numeric 10,
+                        Jack, Queen, King, Ace]
 
-shuffledDeck :: Deck
-shuffledDeck = undefined
+shuffledDeck :: IO Deck
+shuffledDeck = shuffleM newDeck
 
 deal :: Deck -> Player -> (Player, Deck)
 deal = undefined
@@ -53,7 +63,7 @@ busted = undefined
 
 handValue :: Player -> Int
 handValue (Player hand) =
-  foldl (+) 0 $ map cardValue hand
+  sum $ map cardValue hand
 
 cardValue :: Card -> Int
 cardValue Ace = 11
