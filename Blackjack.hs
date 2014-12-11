@@ -24,17 +24,23 @@ main = do
   let game = setup
   let victory = checkVictory game
   -- deck <- shuffleM newDeck
-  return ()
+  print victory
 
 setup :: Game
-setup = undefined
+setup =
+  (shuffledDeck, Player [], Player [])
 
 checkVictory :: Game -> Bool
-checkVictory = undefined
+checkVictory (_, player, dealer)
+  | playerValue > 21 = False
+  | dealerValue > 21 = True
+  | playerValue > dealerValue = True
+  | otherwise = False
+  where playerValue = handValue player
+        dealerValue = handValue dealer
 
 newDeck :: Deck
 newDeck = undefined
-
 
 shuffledDeck :: Deck
 shuffledDeck = undefined
@@ -46,10 +52,15 @@ busted :: Player -> Bool
 busted = undefined
 
 handValue :: Player -> Int
-handValue = undefined
+handValue (Player hand) =
+  foldl (+) 0 $ map cardValue hand
 
 cardValue :: Card -> Int
-cardValue = undefined
+cardValue Ace = 11
+cardValue King = 10
+cardValue Queen = 10
+cardValue Jack = 10
+cardValue (Numeric a) = a
 
 doDealerTurn :: Dealer -> Deck -> (Dealer, Deck)
 doDealerTurn = undefined
