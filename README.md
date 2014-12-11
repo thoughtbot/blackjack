@@ -1,0 +1,4 @@
+blackjack
+=========
+
+Blackjack...in Haskell!
