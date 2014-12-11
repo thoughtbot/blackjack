@@ -19,8 +19,17 @@ main = do
   deck <- shuffleM newDeck
   let game = setup deck
   game' <- playHand game
-  printGame game'
-  declareWinner game'
+  let (_, player, _) = game'
+  if playerHasBusted player
+    then putStrLn "You busted :("
+    else do
+      game'' <- playDealer game
+      printGame game''
+      declareWinner game''
+
+playerHasBusted :: Player -> Bool
+playerHasBusted player =
+  handValue player > 21
 
 declareWinner :: Game -> IO ()
 declareWinner game = do
@@ -36,14 +45,25 @@ printGame (_, player, dealer) = do
 
 playHand :: Game -> IO Game
 playHand (deck, player, dealer) = do
-  printHand "Your hand: " player
-  printUpCard dealer
-  action <- getLine
-  let playerAction = makeAction action
-  let (player', deck') = doPlayerTurn player deck playerAction
-  if playerAction == Hit
-      then playHand (deck', player', dealer)
-      else return (deck', player', dealer)
+  if playerHasBusted player
+    then return (deck, player, dealer)
+    else do
+      printHand "Your hand: " player
+      printUpCard dealer
+      action <- getLine
+      let playerAction = makeAction action
+      let (player', deck') = doPlayerTurn player deck playerAction
+      if playerAction == Hit
+          then playHand (deck', player', dealer)
+          else return (deck', player', dealer)
+
+playDealer :: Game -> IO Game
+playDealer (deck, player, dealer@(Player hand)) = do
+  if handValue dealer < 17
+    then do
+      putStrLn "Dealer hits"
+      playDealer (drop 1 deck, player, Player $ hand ++ take 1 deck)
+    else return (deck, player, dealer)
 
 printUpCard :: Dealer -> IO ()
 printUpCard (Player hand) =
@@ -94,9 +114,6 @@ cardValue King = 10
 cardValue Queen = 10
 cardValue Jack = 10
 cardValue (Numeric a) = a
-
--- doDealerTurn :: Dealer -> Deck -> (Dealer, Deck)
--- doDealerTurn = undefined
 
 doPlayerTurn :: Player -> Deck -> Action -> (Player, Deck)
 doPlayerTurn (Player hand) deck Hit =
