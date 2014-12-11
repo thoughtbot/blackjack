@@ -21,18 +21,39 @@ main = do
   deck <- shuffleM newDeck
   let game = setup deck
   game' <- playHand game
+  printGame game'
+  declareWinner game'
+
+declareWinner :: Game -> IO ()
+declareWinner game = do
   let victory = playerVictory game
-  return ()
+  if victory
+    then putStrLn "You win!"
+    else putStrLn "You lose :("
+
+printGame :: Game -> IO ()
+printGame (_, player, dealer) = do
+  printHand "Dealer's hand: " dealer
+  printHand "Your hand: " player
 
 playHand :: Game -> IO Game
 playHand (deck, player, dealer) = do
-  putStrLn $ "Your hand: " ++ (show $ handValue player)
+  printHand "Your hand: " player
+  printUpCard dealer
   action <- getLine
   let playerAction = makeAction action
   let (player', deck') = doPlayerTurn player deck playerAction
   if playerAction == Hit
       then playHand (deck', player', dealer)
       else return (deck', player', dealer)
+
+printUpCard :: Dealer -> IO ()
+printUpCard (Player hand) =
+  putStrLn $ "Dealer's card: " ++ (show $ (head hand))
+
+printHand :: [Char] -> Player -> IO ()
+printHand message player = do
+  putStrLn $ message ++ (show $ handValue player)
 
 makeAction:: [Char] -> Action
 makeAction "hit" = Hit
