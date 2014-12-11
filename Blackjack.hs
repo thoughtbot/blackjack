@@ -17,16 +17,24 @@ type Dealer = Player
 
 data Action = Hit | Stay
 
+type Game = (Deck, Player, Dealer)
+
 main :: IO ()
 main = do
-  deck <- shuffleM newDeck
+  let game = setup
+  let victory = checkVictory game
+  -- deck <- shuffleM newDeck
   return ()
+
+setup :: Game
+setup = undefined
+
+checkVictory :: Game -> Bool
+checkVictory = undefined
 
 newDeck :: Deck
 newDeck = undefined
 
-victory :: Player -> Player -> Bool
-victory = undefined
 
 shuffledDeck :: Deck
 shuffledDeck = undefined
