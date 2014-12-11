@@ -3,17 +3,15 @@ import System.Random.Shuffle
 data Card = Numeric Int | Jack | Queen | King | Ace
   deriving (Show)
 
-type Deck = [Card]
-type Hand = [Card]
-
 data Player = Player Hand
   deriving (Show)
-
-type Dealer = Player
 
 data Action = Hit | Stay
   deriving (Eq)
 
+type Dealer = Player
+type Deck = [Card]
+type Hand = [Card]
 type Game = (Deck, Player, Dealer)
 
 main :: IO ()
@@ -99,7 +97,7 @@ cardValue (Numeric a) = a
 
 -- doDealerTurn :: Dealer -> Deck -> (Dealer, Deck)
 -- doDealerTurn = undefined
---
+
 doPlayerTurn :: Player -> Deck -> Action -> (Player, Deck)
 doPlayerTurn (Player hand) deck Hit =
   (Player $ hand ++ take 1 deck, drop 1 deck)
