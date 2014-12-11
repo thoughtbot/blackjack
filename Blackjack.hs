@@ -1,8 +1,4 @@
-module Blackjack where
 import System.Random.Shuffle
--- write types
--- annotated fns with empty bodies
--- start high-level
 
 data Card = Numeric Int | Jack | Queen | King | Ace
   deriving (Show)
@@ -23,9 +19,22 @@ main :: IO ()
 main = do
   deck <- shuffleM newDeck
   let game = setup deck
+  game' <- playHand game
   let victory = playerVictory game
-  print game
-  print victory
+  return ()
+
+playHand :: Game -> IO Game
+playHand (deck, player, dealer) = do
+  putStrLn $ "Your hand: " ++ (show $ handValue player)
+  action <- getLine
+  let playerAction = makeAction action
+  let (player', deck') = doPlayerTurn player deck playerAction
+  putStrLn $ "Your hand: " ++ (show $ handValue player')
+  return (deck', player', dealer)
+
+makeAction:: [Char] -> Action
+makeAction "hit" = Hit
+makeAction "stay" = Stay
 
 setup :: Deck -> Game
 setup deck =
@@ -48,21 +57,14 @@ playerVictory (_, player, dealer)
 
 newDeck :: Deck
 newDeck =
-  concat $ replicate 4 [Numeric 1, Numeric 2, Numeric 3, Numeric 4, Numeric 5,
-                        Numeric 6, Numeric 7, Numeric 8, Numeric 9, Numeric 10,
-                        Jack, Queen, King, Ace]
+  concat $ replicate 4 $ map Numeric [1..10] ++ [Jack, Queen, King, Ace]
 
 shuffledDeck :: IO Deck
 shuffledDeck = shuffleM newDeck
 
-deal :: Deck -> Player -> (Player, Deck)
-deal = undefined
-
-busted :: Player -> Bool
-busted = undefined
-
 handValue :: Player -> Int
 handValue (Player hand) =
+-- sumBy ?
   sum $ map cardValue hand
 
 cardValue :: Card -> Int
@@ -72,8 +74,10 @@ cardValue Queen = 10
 cardValue Jack = 10
 cardValue (Numeric a) = a
 
-doDealerTurn :: Dealer -> Deck -> (Dealer, Deck)
-doDealerTurn = undefined
-
+-- doDealerTurn :: Dealer -> Deck -> (Dealer, Deck)
+-- doDealerTurn = undefined
+--
 doPlayerTurn :: Player -> Deck -> Action -> (Player, Deck)
-doPlayerTurn = undefined
+doPlayerTurn (Player hand) deck Hit =
+  (Player $ hand ++ take 1 deck, drop 1 deck)
+doPlayerTurn player deck Stay = (player, deck)
